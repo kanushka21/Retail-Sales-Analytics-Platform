@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import Products from './pages/Products';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -28,8 +30,16 @@ function App() {
                     element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login setAuth={setIsAuthenticated} />} 
                 />
                 <Route 
+                    path="/signup" 
+                    element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />} 
+                />
+                <Route 
                     path="/dashboard" 
                     element={isAuthenticated ? <Dashboard setAuth={setIsAuthenticated} /> : <Navigate to="/" />} 
+                />
+                <Route 
+                    path="/products" 
+                    element={isAuthenticated ? <Products /> : <Navigate to="/" />} 
                 />
             </Routes>
         </Router>

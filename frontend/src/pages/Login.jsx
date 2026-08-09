@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { jwtDecode } from 'jwt-decode';
 
@@ -107,6 +107,15 @@ const Login = ({ setAuth }) => {
                         ) : 'Sign In'}
                     </button>
                 </form>
+
+                <div className="mt-6 text-center">
+                    <p className="text-indigo-200 text-sm">
+                        Don't have an account?{' '}
+                        <Link to="/signup" className="text-white font-semibold hover:text-indigo-300 transition-colors">
+                            Sign Up
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
