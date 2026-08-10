@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category
+from .models import Product, Category, Customer
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -43,4 +43,20 @@ class ProductSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         if not value.strip():
             raise serializers.ValidationError("Product name cannot be empty.")
+        return value
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['id', 'full_name', 'email', 'phone', 'address', 'created_at', 'updated_at', 'is_active']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_full_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Full name cannot be empty.")
+        return value
+
+    def validate_phone(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Phone number cannot be empty.")
         return value

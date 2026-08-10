@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { jwtDecode } from 'jwt-decode';
 
@@ -40,6 +40,11 @@ const Dashboard = ({ setAuth }) => {
                         RA
                     </div>
                     <span className="text-xl font-bold text-slate-800 tracking-tight">Retail Analytics Dashboard</span>
+                </div>
+                <div className="hidden md:flex space-x-8 mr-auto ml-10">
+                    <Link to="/dashboard" className="text-indigo-600 font-medium border-b-2 border-indigo-600 pb-1">Dashboard</Link>
+                    <Link to="/products" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors">Products</Link>
+                    <Link to="/customers" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors">Customers</Link>
                 </div>
                 <div className="flex items-center space-x-6">
                     {userData && (

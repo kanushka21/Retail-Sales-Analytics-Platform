@@ -1,7 +1,7 @@
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
-from .models import Product, Category
-from .serializers import ProductSerializer, CategorySerializer
+from .models import Product, Category, Customer
+from .serializers import ProductSerializer, CategorySerializer, CustomerSerializer
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.filter(is_active=True).order_by('name')
@@ -23,3 +23,10 @@ class ProductViewSet(viewsets.ModelViewSet):
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         return queryset
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = Customer.objects.filter(is_active=True).order_by('-created_at')
+    serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['full_name', 'email', 'phone']
