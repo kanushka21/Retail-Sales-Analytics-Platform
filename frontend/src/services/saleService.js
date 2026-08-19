@@ -1,0 +1,20 @@
+import api from './api';
+
+const saleService = {
+    getSales: async () => {
+        const response = await api.get('/store/sales/');
+        return response.data;
+    },
+    
+    getSale: async (id) => {
+        const response = await api.get(`/store/sales/${id}/`);
+        return response.data;
+    },
+    
+    createSale: async (data) => {
+        const response = await api.post('/store/sales/', data);
+        return response.data;
+    }
+};
+
+export default saleService;

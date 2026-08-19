@@ -5,7 +5,9 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Customers from './pages/Customers';
-
+import Inventory from './pages/Inventory';
+import POS from './pages/POS';
+import SalesHistory from './pages/SalesHistory';
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -45,6 +47,18 @@ function App() {
                 <Route 
                     path="/customers" 
                     element={isAuthenticated ? <Customers /> : <Navigate to="/" />} 
+                />
+                <Route 
+                    path="/inventory" 
+                    element={isAuthenticated ? <Inventory /> : <Navigate to="/" />} 
+                />
+                <Route 
+                    path="/sales/new" 
+                    element={isAuthenticated ? <POS /> : <Navigate to="/" />} 
+                />
+                <Route 
+                    path="/sales" 
+                    element={isAuthenticated ? <SalesHistory /> : <Navigate to="/" />} 
                 />
             </Routes>
         </Router>

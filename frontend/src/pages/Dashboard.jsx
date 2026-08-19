@@ -43,7 +43,10 @@ const Dashboard = ({ setAuth }) => {
                 </div>
                 <div className="hidden md:flex space-x-8 mr-auto ml-10">
                     <Link to="/dashboard" className="text-indigo-600 font-medium border-b-2 border-indigo-600 pb-1">Dashboard</Link>
+                    <Link to="/sales/new" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors">POS</Link>
+                    <Link to="/sales" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors">Sales History</Link>
                     <Link to="/products" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors">Products</Link>
+                    <Link to="/inventory" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors">Inventory</Link>
                     <Link to="/customers" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors">Customers</Link>
                 </div>
                 <div className="flex items-center space-x-6">
