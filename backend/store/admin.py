@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Supplier, Product, Customer, Inventory, Sale, SaleItem
+from .models import Category, Supplier, Product, Customer, Inventory, Sale, SaleItem, StockMovement
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -49,4 +49,11 @@ class SaleItemAdmin(admin.ModelAdmin):
     list_display = ('sale', 'product', 'quantity', 'unit_price', 'total_price', 'is_active')
     search_fields = ('sale__id', 'product__name')
     list_filter = ('is_active',)
+
+@admin.register(StockMovement)
+class StockMovementAdmin(admin.ModelAdmin):
+    list_display = ('product', 'movement_type', 'quantity', 'previous_stock', 'new_stock', 'created_by', 'created_at')
+    list_filter = ('movement_type', 'created_at')
+    search_fields = ('product__name',)
+    readonly_fields = ('created_at', 'updated_at')
 
