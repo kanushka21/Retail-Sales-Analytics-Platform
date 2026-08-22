@@ -8,6 +8,8 @@ import Customers from './pages/Customers';
 import Inventory from './pages/Inventory';
 import POS from './pages/POS';
 import SalesHistory from './pages/SalesHistory';
+import Reports from './pages/Reports';
+
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -59,6 +61,10 @@ function App() {
                 <Route 
                     path="/sales" 
                     element={isAuthenticated ? <SalesHistory /> : <Navigate to="/" />} 
+                />
+                <Route 
+                    path="/reports" 
+                    element={isAuthenticated ? <Reports /> : <Navigate to="/" />} 
                 />
             </Routes>
         </Router>
