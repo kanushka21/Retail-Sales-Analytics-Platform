@@ -125,6 +125,7 @@ class SaleItem(BaseModel):
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name="items", verbose_name="Sale")
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, related_name="sale_items", verbose_name="Product")
     quantity = models.PositiveIntegerField(default=1, verbose_name="Quantity")
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Cost Price")
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Unit Price")
     total_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Total Price")
 
