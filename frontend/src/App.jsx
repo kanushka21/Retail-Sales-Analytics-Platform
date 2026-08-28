@@ -9,6 +9,7 @@ import Inventory from './pages/Inventory';
 import POS from './pages/POS';
 import SalesHistory from './pages/SalesHistory';
 import Reports from './pages/Reports';
+import Forecast from './pages/Forecast';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -65,6 +66,10 @@ function App() {
                 <Route 
                     path="/reports" 
                     element={isAuthenticated ? <Reports /> : <Navigate to="/" />} 
+                />
+                <Route 
+                    path="/forecast" 
+                    element={isAuthenticated ? <Forecast /> : <Navigate to="/" />} 
                 />
             </Routes>
         </Router>

@@ -180,6 +180,7 @@ const Reports = ({ setAuth }) => {
                     <Link to="/inventory" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Inventory</Link>
                     <Link to="/customers" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Customers</Link>
                     <Link to="/reports" className="text-indigo-400 font-medium border-b-2 border-indigo-400 pb-1 whitespace-nowrap">Reports</Link>
+                    <Link to="/forecast" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Forecast</Link>
                 </div>
                 <div className="flex items-center space-x-4 lg:space-x-6">
                     <button

@@ -90,6 +90,7 @@ const Dashboard = ({ setAuth }) => {
                     <Link to="/inventory" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Inventory</Link>
                     <Link to="/customers" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Customers</Link>
                     <Link to="/reports" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Reports</Link>
+                    <Link to="/forecast" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Forecast</Link>
                 </div>
                 <div className="flex items-center space-x-4 lg:space-x-6">
                     {userData && (
