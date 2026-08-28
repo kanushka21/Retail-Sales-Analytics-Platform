@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import ProductViewSet, CategoryViewSet, CustomerViewSet, InventoryViewSet, SaleViewSet
 from .analytics_views import AnalyticsSummaryView, SalesTrendView, CategorySalesView, TopProductsView, PaymentMethodsView
 from .report_views import SalesReportView, ProductReportView, InventoryReportView, CustomerReportView, FinancialReportView
+from .forecasting_views import SalesForecastView
 
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
@@ -19,6 +20,9 @@ urlpatterns = [
     path('analytics/top-products/', TopProductsView.as_view(), name='analytics-top-products'),
     path('analytics/payment-methods/', PaymentMethodsView.as_view(), name='analytics-payment-methods'),
     
+    # ML Forecasting
+    path('analytics/forecast/', SalesForecastView.as_view(), name='analytics-forecast'),
+
     # Reports
     path('reports/sales/', SalesReportView.as_view(), name='report-sales'),
     path('reports/products/', ProductReportView.as_view(), name='report-products'),
