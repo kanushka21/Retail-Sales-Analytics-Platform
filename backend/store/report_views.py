@@ -106,21 +106,41 @@ class SalesReportView(APIView):
         qs = qs.order_by('-sale_date')
 
         data = []
+        total_sales_revenue = 0
+        total_orders = 0
+        total_discount = 0
+
         for sale in qs:
             items_count = sum(item.quantity for item in sale.items.all())
             customer_name = sale.customer.full_name if sale.customer else "Guest"
             created_by = sale.created_by.username if sale.created_by else "System"
+            
+            subtotal = float(sale.subtotal)
+            discount = float(sale.discount)
+            total = float(sale.total_amount)
+            
+            total_sales_revenue += total
+            total_orders += 1
+            total_discount += discount
+
             data.append({
                 "sale_id": sale.id,
                 "date": sale.sale_date.strftime("%Y-%m-%d %H:%M"),
                 "customer": customer_name,
                 "items_count": items_count,
-                "subtotal": float(sale.subtotal),
-                "discount": float(sale.discount),
-                "total": float(sale.total_amount),
+                "subtotal": subtotal,
+                "discount": discount,
+                "total": total,
                 "payment_method": sale.get_payment_method_display(),
                 "created_by": created_by
             })
+
+        summary = {
+            "Total Sales": total_sales_revenue,
+            "Total Orders": total_orders,
+            "Total Discount": total_discount,
+            "Average Order Value": (total_sales_revenue / total_orders) if total_orders > 0 else 0
+        }
 
         if export == 'excel':
             headers = ['Sale ID', 'Date', 'Customer', 'Items', 'Subtotal', 'Discount', 'Total', 'Payment Method', 'Created By']
@@ -132,18 +152,27 @@ class SalesReportView(APIView):
             rows = [[d['sale_id'], d['date'], d['customer'], d['items_count'], d['subtotal'], d['discount'], d['total'], d['payment_method'], d['created_by']] for d in data]
             return export_pdf("Sales Report", headers, rows, "sales_report.pdf")
 
-        return Response(data)
+        return Response({"summary": summary, "data": data})
 
 class ProductReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        sort_by = request.GET.get('sort_by', '-qty_sold') # qty_sold, -qty_sold, revenue, -revenue
+        sort_by = request.GET.get('sort_by', '-qty_sold')
         export = request.GET.get('export')
+        start_date = parse_date(request.GET.get('start_date'))
+        end_date = parse_date(request.GET.get('end_date'))
+
+        q_filter = Q()
+        if start_date:
+            q_filter &= Q(sale_items__sale__sale_date__gte=start_date)
+        if end_date:
+            end_date_time = end_date.replace(hour=23, minute=59, second=59)
+            q_filter &= Q(sale_items__sale__sale_date__lte=end_date_time)
 
         qs = Product.objects.select_related('category').annotate(
-            qty_sold=Sum('sale_items__quantity', default=0),
-            revenue=Sum('sale_items__total_price', default=0)
+            qty_sold=Sum('sale_items__quantity', filter=q_filter, default=0),
+            revenue=Sum('sale_items__total_price', filter=q_filter, default=0)
         )
 
         if sort_by == 'qty_sold':
@@ -156,27 +185,62 @@ class ProductReportView(APIView):
             qs = qs.order_by('-revenue')
 
         data = []
+        total_products = 0
+        total_units_sold = 0
+        total_revenue_overall = 0
+        total_profit_overall = 0
+
         for p in qs:
+            cost_price = float(p.cost_price)
+            unit_price = float(p.selling_price)
+            qty_sold = p.qty_sold
+            revenue = float(p.revenue)
+            cost = qty_sold * cost_price
+            profit = revenue - cost
+            
+            if p.current_stock <= 0:
+                stock_status = "out_of_stock"
+            elif p.current_stock <= p.minimum_stock_level:
+                stock_status = "low_stock"
+            else:
+                stock_status = "in_stock"
+
+            total_products += 1
+            total_units_sold += qty_sold
+            total_revenue_overall += revenue
+            total_profit_overall += profit
+
             data.append({
                 "product_name": p.name,
                 "sku": p.sku,
                 "category": p.category.name if p.category else "N/A",
-                "qty_sold": p.qty_sold,
-                "revenue": float(p.revenue),
-                "current_stock": p.current_stock
+                "unit_price": unit_price,
+                "cost_price": cost_price,
+                "current_stock": p.current_stock,
+                "qty_sold": qty_sold,
+                "revenue": revenue,
+                "profit": profit,
+                "stock_status": stock_status
             })
 
+        summary = {
+            "Total Products": total_products,
+            "Units Sold": total_units_sold,
+            "Total Revenue": total_revenue_overall,
+            "Total Profit": total_profit_overall
+        }
+
         if export == 'excel':
-            headers = ['Product Name', 'SKU', 'Category', 'Quantity Sold', 'Revenue', 'Current Stock']
-            rows = [[d['product_name'], d['sku'], d['category'], d['qty_sold'], d['revenue'], d['current_stock']] for d in data]
+            headers = ['Product Name', 'SKU', 'Category', 'Unit Price', 'Cost Price', 'Current Stock', 'Units Sold', 'Revenue', 'Profit', 'Stock Status']
+            rows = [[d['product_name'], d['sku'], d['category'], d['unit_price'], d['cost_price'], d['current_stock'], d['qty_sold'], d['revenue'], d['profit'], d['stock_status'].replace('_', ' ').title()] for d in data]
             return export_excel("Product Sales Report", headers, rows, "product_report.xlsx")
         
         if export == 'pdf':
-            headers = ['Product Name', 'SKU', 'Category', 'Quantity Sold', 'Revenue', 'Current Stock']
-            rows = [[d['product_name'], d['sku'], d['category'], d['qty_sold'], d['revenue'], d['current_stock']] for d in data]
+            headers = ['Product Name', 'SKU', 'Category', 'Unit Price', 'Cost Price', 'Current Stock', 'Units Sold', 'Revenue', 'Profit', 'Stock Status']
+            rows = [[d['product_name'], d['sku'], d['category'], d['unit_price'], d['cost_price'], d['current_stock'], d['qty_sold'], d['revenue'], d['profit'], d['stock_status'].replace('_', ' ').title()] for d in data]
             return export_pdf("Product Sales Report", headers, rows, "product_report.pdf")
 
-        return Response(data)
+        return Response({"summary": summary, "data": data})
 
 class InventoryReportView(APIView):
     permission_classes = [IsAuthenticated]
@@ -188,11 +252,28 @@ class InventoryReportView(APIView):
         qs = Inventory.objects.select_related('product', 'product__category')
         
         data = []
+        total_products = 0
+        total_stock = 0
+        low_stock = 0
+        out_of_stock = 0
+        total_value = 0
+
         for inv in qs:
             status = inv.stock_status
             if status_filter and status != status_filter:
                 continue
             
+            val = inv.quantity * float(inv.product.cost_price)
+            
+            if status == 'out_of_stock':
+                out_of_stock += 1
+            elif status == 'low_stock':
+                low_stock += 1
+                
+            total_products += 1
+            total_stock += inv.quantity
+            total_value += val
+
             data.append({
                 "product": inv.product.name,
                 "sku": inv.product.sku,
@@ -200,56 +281,92 @@ class InventoryReportView(APIView):
                 "current_stock": inv.quantity,
                 "min_stock": inv.product.minimum_stock_level,
                 "status": status,
+                "stock_value": val,
                 "last_updated": inv.last_updated.strftime("%Y-%m-%d %H:%M")
             })
 
+        summary = {
+            "Total Products": total_products,
+            "Total Stock": total_stock,
+            "Low Stock": low_stock,
+            "Out of Stock": out_of_stock,
+            "Total Inventory Value": total_value
+        }
+
         if export == 'excel':
-            headers = ['Product', 'SKU', 'Category', 'Current Stock', 'Min Stock', 'Status', 'Last Updated']
-            rows = [[d['product'], d['sku'], d['category'], d['current_stock'], d['min_stock'], d['status'], d['last_updated']] for d in data]
+            headers = ['Product', 'SKU', 'Category', 'Current Stock', 'Min Stock', 'Stock Value', 'Status', 'Last Updated']
+            rows = [[d['product'], d['sku'], d['category'], d['current_stock'], d['min_stock'], d['stock_value'], d['status'].replace('_', ' ').title(), d['last_updated']] for d in data]
             return export_excel("Inventory Report", headers, rows, "inventory_report.xlsx")
         
         if export == 'pdf':
-            headers = ['Product', 'SKU', 'Category', 'Current Stock', 'Min Stock', 'Status', 'Last Updated']
-            rows = [[d['product'], d['sku'], d['category'], d['current_stock'], d['min_stock'], d['status'], d['last_updated']] for d in data]
+            headers = ['Product', 'SKU', 'Category', 'Current Stock', 'Min Stock', 'Stock Value', 'Status', 'Last Updated']
+            rows = [[d['product'], d['sku'], d['category'], d['current_stock'], d['min_stock'], d['stock_value'], d['status'].replace('_', ' ').title(), d['last_updated']] for d in data]
             return export_pdf("Inventory Report", headers, rows, "inventory_report.pdf")
 
-        return Response(data)
+        return Response({"summary": summary, "data": data})
 
 class CustomerReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         export = request.GET.get('export')
+        start_date = parse_date(request.GET.get('start_date'))
+        end_date = parse_date(request.GET.get('end_date'))
+
+        q_filter = Q()
+        if start_date:
+            q_filter &= Q(sales__sale_date__gte=start_date)
+        if end_date:
+            end_date_time = end_date.replace(hour=23, minute=59, second=59)
+            q_filter &= Q(sales__sale_date__lte=end_date_time)
 
         qs = Customer.objects.annotate(
-            num_purchases=Count('sales'),
-            total_spend=Sum('sales__total_amount', default=0)
+            num_purchases=Count('sales', filter=q_filter),
+            total_spend=Sum('sales__total_amount', filter=q_filter, default=0)
         ).order_by('-total_spend')
 
         data = []
+        total_customers = Customer.objects.count()
+        active_customers = 0
+        total_revenue = 0
+
         for c in qs:
-            last_purchase = c.sales.order_by('-sale_date').first()
-            last_date = last_purchase.sale_date.strftime("%Y-%m-%d") if last_purchase else "Never"
+            if c.num_purchases > 0:
+                active_customers += 1
+                
+            last_purchase_obj = c.sales.filter(q_filter).order_by('-sale_date').first()
+            last_date = last_purchase_obj.sale_date.strftime("%Y-%m-%d") if last_purchase_obj else "Never"
+            t_spend = float(c.total_spend)
+            total_revenue += t_spend
+            
             data.append({
                 "customer_name": c.full_name,
                 "email": c.email,
                 "phone": c.phone,
                 "num_purchases": c.num_purchases,
-                "total_spend": float(c.total_spend),
+                "total_spend": t_spend,
+                "avg_order_value": (t_spend / c.num_purchases) if c.num_purchases > 0 else 0,
                 "last_purchase": last_date
             })
 
+        summary = {
+            "Total Customers": total_customers,
+            "Active Customers": active_customers,
+            "Total Revenue": total_revenue,
+            "Average Spend": (total_revenue / active_customers) if active_customers > 0 else 0
+        }
+
         if export == 'excel':
-            headers = ['Customer Name', 'Email', 'Phone', 'Purchases', 'Total Spend', 'Last Purchase']
-            rows = [[d['customer_name'], d['email'], d['phone'], d['num_purchases'], d['total_spend'], d['last_purchase']] for d in data]
+            headers = ['Customer Name', 'Email', 'Phone', 'Purchases', 'Total Spend', 'Avg Order Value', 'Last Purchase']
+            rows = [[d['customer_name'], d['email'], d['phone'], d['num_purchases'], d['total_spend'], d['avg_order_value'], d['last_purchase']] for d in data]
             return export_excel("Customer Report", headers, rows, "customer_report.xlsx")
         
         if export == 'pdf':
-            headers = ['Customer Name', 'Email', 'Phone', 'Purchases', 'Total Spend', 'Last Purchase']
-            rows = [[d['customer_name'], d['email'], d['phone'], d['num_purchases'], d['total_spend'], d['last_purchase']] for d in data]
+            headers = ['Customer Name', 'Email', 'Phone', 'Purchases', 'Total Spend', 'Avg Order Value', 'Last Purchase']
+            rows = [[d['customer_name'], d['email'], d['phone'], d['num_purchases'], d['total_spend'], d['avg_order_value'], d['last_purchase']] for d in data]
             return export_pdf("Customer Report", headers, rows, "customer_report.pdf")
 
-        return Response(data)
+        return Response({"summary": summary, "data": data})
 
 class FinancialReportView(APIView):
     permission_classes = [IsAuthenticated]
@@ -266,9 +383,9 @@ class FinancialReportView(APIView):
             qs = qs.filter(sale_date__gte=start_date)
             items_qs = items_qs.filter(sale__sale_date__gte=start_date)
         if end_date:
-            end_date = end_date.replace(hour=23, minute=59, second=59)
-            qs = qs.filter(sale_date__lte=end_date)
-            items_qs = items_qs.filter(sale__sale_date__lte=end_date)
+            end_date_time = end_date.replace(hour=23, minute=59, second=59)
+            qs = qs.filter(sale_date__lte=end_date_time)
+            items_qs = items_qs.filter(sale__sale_date__lte=end_date_time)
 
         stats = qs.aggregate(
             total_revenue=Sum('total_amount', default=0),
@@ -285,32 +402,34 @@ class FinancialReportView(APIView):
         orders = stats['orders']
         total_cost = float(cost_stats['total_cost'] or 0)
         gross_profit = total_revenue - total_cost
+        avg_order_value = (total_revenue / orders) if orders > 0 else 0
 
-        data = [{
-            "metric": "Total Revenue",
-            "value": total_revenue
-        }, {
-            "metric": "Total Cost",
-            "value": total_cost
-        }, {
-            "metric": "Gross Profit",
-            "value": gross_profit
-        }, {
-            "metric": "Total Discount",
-            "value": total_discount
-        }, {
-            "metric": "Number of Orders",
-            "value": orders
-        }]
+        summary = {
+            "Total Revenue": total_revenue,
+            "Total Cost": total_cost,
+            "Gross Profit": gross_profit,
+            "Total Discounts": total_discount,
+            "Total Orders": orders,
+            "Average Order Value": avg_order_value
+        }
+
+        data = [
+            {"metric": "Total Revenue", "value": total_revenue},
+            {"metric": "Total Cost", "value": total_cost},
+            {"metric": "Gross Profit", "value": gross_profit},
+            {"metric": "Total Discounts", "value": total_discount},
+            {"metric": "Number of Orders", "value": orders},
+            {"metric": "Average Order Value", "value": avg_order_value},
+        ]
 
         if export == 'excel':
             headers = ['Metric', 'Value']
             rows = [[d['metric'], d['value']] for d in data]
-            return export_excel("Financial Report", headers, rows, "financial_report.xlsx")
+            return export_excel("Financial Summary", headers, rows, "financial_report.xlsx")
         
         if export == 'pdf':
             headers = ['Metric', 'Value']
             rows = [[d['metric'], d['value']] for d in data]
-            return export_pdf("Financial Report", headers, rows, "financial_report.pdf")
+            return export_pdf("Financial Summary", headers, rows, "financial_report.pdf")
 
-        return Response({"summary": data})
+        return Response({"summary": summary, "data": data})

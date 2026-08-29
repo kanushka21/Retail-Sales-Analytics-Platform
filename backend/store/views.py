@@ -5,11 +5,11 @@ from rest_framework.response import Response
 from django.db import transaction
 from django.db.models import F
 
-from .models import Product, Category, Customer, Inventory, StockMovement, Sale, SaleItem
+from .models import Product, Category, Customer, Inventory, StockMovement, Sale, SaleItem, Supplier
 from .serializers import (
     ProductSerializer, CategorySerializer, CustomerSerializer,
     InventorySerializer, StockAdjustmentSerializer,
-    SaleSerializer, SaleCreateSerializer
+    SaleSerializer, SaleCreateSerializer, SupplierSerializer
 )
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -18,6 +18,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+
+class SupplierViewSet(viewsets.ModelViewSet):
+    queryset = Supplier.objects.filter(is_active=True).order_by('company_name')
+    serializer_class = SupplierSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['company_name', 'contact_person', 'email', 'phone']
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.filter(is_active=True).order_by('-created_at')
@@ -139,11 +146,11 @@ from rest_framework.response import Response
 from django.db import transaction
 from django.db.models import F
 
-from .models import Product, Category, Customer, Inventory, StockMovement, Sale, SaleItem
+from .models import Product, Category, Customer, Inventory, StockMovement, Sale, SaleItem, Supplier
 from .serializers import (
     ProductSerializer, CategorySerializer, CustomerSerializer,
     InventorySerializer, StockAdjustmentSerializer,
-    SaleSerializer, SaleCreateSerializer
+    SaleSerializer, SaleCreateSerializer, SupplierSerializer, SupplierSerializer
 )
 
 class CategoryViewSet(viewsets.ModelViewSet):

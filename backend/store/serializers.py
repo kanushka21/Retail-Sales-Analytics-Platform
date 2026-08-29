@@ -1,11 +1,22 @@
 from rest_framework import serializers
-from .models import Product, Category, Customer, Inventory, StockMovement, Sale, SaleItem
+from .models import Product, Category, Customer, Inventory, StockMovement, Sale, SaleItem, Supplier
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'description', 'created_at', 'updated_at', 'is_active']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = ['id', 'company_name', 'contact_person', 'email', 'phone', 'address', 'created_at', 'updated_at', 'is_active']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_company_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Company name cannot be empty.")
+        return value
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)

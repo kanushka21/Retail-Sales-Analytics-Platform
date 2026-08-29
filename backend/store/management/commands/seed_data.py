@@ -161,9 +161,9 @@ class Command(BaseCommand):
 
         now = timezone.now()
         
-        # Determine how many to create to reach 30 total
+        # Determine how many to create to reach 100 total
         current_count = Sale.objects.count()
-        to_create = 30 - current_count
+        to_create = 100 - current_count
         
         if to_create <= 0:
             self.stdout.write('Sales already seeded. Skipping.')

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProductViewSet, CategoryViewSet, CustomerViewSet, InventoryViewSet, SaleViewSet
+from .views import ProductViewSet, CategoryViewSet, CustomerViewSet, InventoryViewSet, SaleViewSet, SupplierViewSet
 from .analytics_views import AnalyticsSummaryView, SalesTrendView, CategorySalesView, TopProductsView, PaymentMethodsView
 from .report_views import SalesReportView, ProductReportView, InventoryReportView, CustomerReportView, FinancialReportView
 from .forecasting_views import SalesForecastView
@@ -11,6 +11,8 @@ router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'customers', CustomerViewSet, basename='customer')
 router.register(r'inventory', InventoryViewSet, basename='inventory')
 router.register(r'sales', SaleViewSet, basename='sale')
+router.register(r'suppliers', SupplierViewSet, basename='supplier')
+
 
 urlpatterns = [
     path('', include(router.urls)),
