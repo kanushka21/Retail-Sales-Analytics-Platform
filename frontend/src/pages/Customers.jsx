@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
 import { 
     getCustomers, 
     getCustomer, 
@@ -115,8 +116,10 @@ function Customers() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-slate-50">
+            <Navbar />
+            <div className="p-8">
+                <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-slate-800">Customer Management</h1>
                     <button 
@@ -290,6 +293,7 @@ function Customers() {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

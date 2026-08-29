@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Navbar from '../components/Navbar';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import analyticsService from '../services/analyticsService';
@@ -17,7 +18,8 @@ const Dashboard = ({ setAuth }) => {
     const [categorySales, setCategorySales] = useState([]);
     const [paymentMethods, setPaymentMethods] = useState([]);
 
-    const [period, setPeriod] = useState('all'); // all, today, this_month, this_year
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -40,18 +42,27 @@ const Dashboard = ({ setAuth }) => {
 
     useEffect(() => {
         fetchAnalytics();
-    }, [period]);
+    }, []);
 
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = async (overrideParams = null) => {
         setLoading(true);
         setError(null);
+        
+        const params = overrideParams !== null ? overrideParams : (startDate && endDate ? { start_date: startDate, end_date: endDate } : {});
+
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+            setError("Start date cannot be after end date.");
+            setLoading(false);
+            return;
+        }
+
         try {
             const [sumData, trendData, catData, topProdData, payData] = await Promise.all([
-                analyticsService.getDashboardSummary(period),
-                analyticsService.getSalesTrend(period === 'all' || period === 'this_year' ? 'monthly' : 'daily'),
-                analyticsService.getCategorySales(),
-                analyticsService.getTopProducts(),
-                analyticsService.getPaymentAnalytics()
+                analyticsService.getDashboardSummary(params),
+                analyticsService.getSalesTrend(params),
+                analyticsService.getCategorySales(params),
+                analyticsService.getTopProducts(params),
+                analyticsService.getPaymentAnalytics(params)
             ]);
             setSummary(sumData);
             setSalesTrend(trendData);
@@ -75,38 +86,7 @@ const Dashboard = ({ setAuth }) => {
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-            <nav className="bg-white shadow-sm border-b border-slate-200 px-4 md:px-8 py-4 flex justify-between items-center">
-                <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
-                        RA
-                    </div>
-                    <span className="text-xl font-bold text-slate-800 tracking-tight hidden sm:inline">Retail Analytics</span>
-                </div>
-                <div className="hidden md:flex space-x-6 lg:space-x-8 mr-auto ml-10 overflow-x-auto">
-                    <Link to="/dashboard" className="text-indigo-600 font-medium border-b-2 border-indigo-600 pb-1 whitespace-nowrap">Dashboard</Link>
-                    <Link to="/sales/new" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">POS</Link>
-                    <Link to="/sales" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Sales History</Link>
-                    <Link to="/products" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Products</Link>
-                    <Link to="/inventory" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Inventory</Link>
-                    <Link to="/customers" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Customers</Link>
-                    <Link to="/reports" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Reports</Link>
-                    <Link to="/forecast" className="text-slate-500 hover:text-indigo-600 font-medium transition-colors whitespace-nowrap">Forecast</Link>
-                </div>
-                <div className="flex items-center space-x-4 lg:space-x-6">
-                    {userData && (
-                        <div className="text-right hidden sm:block">
-                            <p className="text-sm font-semibold text-slate-800">{userData.first_name} {userData.last_name}</p>
-                            <p className="text-xs text-indigo-600 font-medium bg-indigo-50 inline-block px-2 py-0.5 rounded-full mt-1">{userData.role}</p>
-                        </div>
-                    )}
-                    <button
-                        onClick={handleLogout}
-                        className="px-4 py-2 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm"
-                    >
-                        Logout
-                    </button>
-                </div>
-            </nav>
+            <Navbar setAuth={setAuth} userData={userData} />
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -114,26 +94,59 @@ const Dashboard = ({ setAuth }) => {
                         <h1 className="text-3xl font-bold text-slate-900">Analytics Dashboard</h1>
                         <p className="text-slate-500 mt-1">Store performance and insights.</p>
                     </div>
-                    <div className="w-full sm:w-auto">
-                        <select
-                            className="w-full sm:w-auto border border-slate-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                            value={period}
-                            onChange={(e) => setPeriod(e.target.value)}
-                        >
-                            <option value="all">All Time</option>
-                            <option value="today">Today</option>
-                            <option value="last_7_days">Last 7 Days</option>
-                            <option value="this_month">This Month</option>
-                            <option value="this_year">This Year</option>
-                        </select>
+                    <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-3">
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="date"
+                                className="border border-slate-300 rounded-lg px-3 py-2 bg-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            />
+                            <span className="text-slate-400">to</span>
+                            <input
+                                type="date"
+                                className="border border-slate-300 rounded-lg px-3 py-2 bg-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => fetchAnalytics()}
+                                className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+                            >
+                                Apply Filters
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setStartDate('');
+                                    setEndDate('');
+                                    fetchAnalytics({});
+                                }}
+                                className="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+                            >
+                                Reset
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 {error && <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-8">{error}</div>}
 
+
                 {loading || !summary ? (
                     <div className="flex items-center justify-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                    </div>
+                ) : summary.total_orders === 0 ? (
+                    <div className="bg-white rounded-lg p-12 text-center border border-slate-100 shadow-sm">
+                        <div className="text-slate-400 mb-2">
+                            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-slate-900 mb-1">No data available</h3>
+                        <p className="text-slate-500">No data available for the selected date range.</p>
                     </div>
                 ) : (
                     <>

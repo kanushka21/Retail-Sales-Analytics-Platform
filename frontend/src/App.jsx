@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Customers from './pages/Customers';
+import Suppliers from './pages/Suppliers';
 import Inventory from './pages/Inventory';
 import POS from './pages/POS';
 import SalesHistory from './pages/SalesHistory';
@@ -50,6 +51,10 @@ function App() {
                 <Route 
                     path="/customers" 
                     element={isAuthenticated ? <Customers /> : <Navigate to="/" />} 
+                />
+                <Route 
+                    path="/suppliers" 
+                    element={isAuthenticated ? <Suppliers /> : <Navigate to="/" />} 
                 />
                 <Route 
                     path="/inventory" 

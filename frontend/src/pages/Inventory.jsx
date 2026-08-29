@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
 import { Link } from 'react-router-dom';
 import { getInventory, addStock, removeStock } from '../services/inventoryService';
 
@@ -129,8 +130,10 @@ function Inventory() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-slate-50">
+            <Navbar />
+            <div className="p-8">
+                <div className="max-w-7xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <div>
                         <Link to="/dashboard" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium mb-2 inline-block">&larr; Back to Dashboard</Link>
@@ -325,6 +328,7 @@ function Inventory() {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

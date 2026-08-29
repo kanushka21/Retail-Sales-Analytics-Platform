@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
 import { Link, useNavigate } from 'react-router-dom';
 import analyticsService from '../services/analyticsService';
 import {
@@ -33,7 +34,7 @@ const Forecast = ({ setAuth }) => {
         setError(null);
         try {
             const data = await analyticsService.getForecast(forecastDays);
-            
+
             // Format data for Recharts (combining historical and forecast)
             const combinedData = [];
             let histRev = 0;
@@ -64,10 +65,10 @@ const Forecast = ({ setAuth }) => {
 
             // Optional: bridge the gap between historical and predicted
             // By finding the last historical point and putting it in both, but recharts handles it fine.
-            
+
             setChartData(combinedData);
             setMetrics(data.model_metrics);
-            
+
             // Re-calculate historical revenue for last 30 days if there are many days
             const recentHist = data.historical_data ? data.historical_data.slice(-30) : [];
             const recentHistRev = recentHist.reduce((sum, item) => sum + item.revenue, 0);
@@ -76,7 +77,7 @@ const Forecast = ({ setAuth }) => {
                 historicalRevenue: recentHistRev,
                 predictedRevenue: predRev
             });
-            
+
         } catch (err) {
             console.error(err);
             if (err.response && err.response.data && err.response.data.error) {
@@ -91,32 +92,7 @@ const Forecast = ({ setAuth }) => {
 
     return (
         <div className="min-h-screen bg-slate-900 text-white font-sans">
-            <nav className="bg-slate-800 shadow-sm border-b border-slate-700 px-4 md:px-8 py-4 flex justify-between items-center">
-                <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
-                        RA
-                    </div>
-                    <span className="text-xl font-bold text-slate-100 tracking-tight hidden sm:inline">Retail Analytics</span>
-                </div>
-                <div className="hidden md:flex space-x-6 lg:space-x-8 mr-auto ml-10 overflow-x-auto">
-                    <Link to="/dashboard" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Dashboard</Link>
-                    <Link to="/sales/new" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">POS</Link>
-                    <Link to="/sales" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Sales History</Link>
-                    <Link to="/products" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Products</Link>
-                    <Link to="/inventory" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Inventory</Link>
-                    <Link to="/customers" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Customers</Link>
-                    <Link to="/reports" className="text-slate-400 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap">Reports</Link>
-                    <Link to="/forecast" className="text-indigo-400 font-medium border-b-2 border-indigo-400 pb-1 whitespace-nowrap">Forecast</Link>
-                </div>
-                <div className="flex items-center space-x-4 lg:space-x-6">
-                    <button
-                        onClick={handleLogout}
-                        className="px-4 py-2 bg-slate-700 border border-slate-600 text-slate-200 font-medium rounded-lg hover:bg-slate-600 hover:text-red-400 hover:border-red-400/50 transition-colors shadow-sm"
-                    >
-                        Logout
-                    </button>
-                </div>
-            </nav>
+            <Navbar setAuth={setAuth} />
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -192,43 +168,43 @@ const Forecast = ({ setAuth }) => {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={chartData} margin={{ top: 5, right: 20, left: 20, bottom: 25 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
-                                        <XAxis 
-                                            dataKey="date" 
-                                            axisLine={false} 
-                                            tickLine={false} 
-                                            tick={{ fill: '#94a3b8', fontSize: 12 }} 
+                                        <XAxis
+                                            dataKey="date"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#94a3b8', fontSize: 12 }}
                                             angle={-45}
                                             textAnchor="end"
                                         />
-                                        <YAxis 
-                                            axisLine={false} 
-                                            tickLine={false} 
-                                            tick={{ fill: '#94a3b8' }} 
-                                            width={80} 
-                                            tickFormatter={(val) => `$${val}`} 
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#94a3b8' }}
+                                            width={80}
+                                            tickFormatter={(val) => `$${val}`}
                                         />
                                         <Tooltip
                                             contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', color: '#f8fafc' }}
                                             formatter={(value) => [`$${parseFloat(value).toFixed(2)}`, '']}
                                         />
-                                        
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="Historical" 
-                                            stroke="#94a3b8" 
-                                            strokeWidth={3} 
-                                            dot={{ r: 3, fill: '#94a3b8', strokeWidth: 0 }} 
-                                            activeDot={{ r: 5, fill: '#f8fafc' }} 
+
+                                        <Line
+                                            type="monotone"
+                                            dataKey="Historical"
+                                            stroke="#94a3b8"
+                                            strokeWidth={3}
+                                            dot={{ r: 3, fill: '#94a3b8', strokeWidth: 0 }}
+                                            activeDot={{ r: 5, fill: '#f8fafc' }}
                                             connectNulls={true}
                                         />
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="Predicted" 
-                                            stroke="#6366f1" 
-                                            strokeWidth={3} 
+                                        <Line
+                                            type="monotone"
+                                            dataKey="Predicted"
+                                            stroke="#6366f1"
+                                            strokeWidth={3}
                                             strokeDasharray="5 5"
-                                            dot={{ r: 3, fill: '#6366f1', strokeWidth: 0 }} 
-                                            activeDot={{ r: 5, fill: '#818cf8' }} 
+                                            dot={{ r: 3, fill: '#6366f1', strokeWidth: 0 }}
+                                            activeDot={{ r: 5, fill: '#818cf8' }}
                                             connectNulls={true}
                                         />
                                     </LineChart>
@@ -244,7 +220,7 @@ const Forecast = ({ setAuth }) => {
                                 Forecast Insights
                             </h3>
                             <p className="text-slate-400 text-sm">
-                                {stats.predictedRevenue > stats.historicalRevenue 
+                                {stats.predictedRevenue > stats.historicalRevenue
                                     ? `Predicted revenue for the next ${forecastDays} days ($${stats.predictedRevenue.toFixed(2)}) is higher than the recent historical average. Prepare inventory for an upward trend.`
                                     : `Predicted revenue for the next ${forecastDays} days ($${stats.predictedRevenue.toFixed(2)}) is expected to be stable or slightly lower. Monitor slow-moving stock.`}
                             </p>

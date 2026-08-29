@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
 import { getProducts } from '../services/productService';
 import { getCustomers } from '../services/customerService';
 import saleService from '../services/saleService';
@@ -151,8 +152,10 @@ function POS() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+        <div className="min-h-screen bg-slate-50">
+            <Navbar />
+            <div className="p-4 md:p-8">
+                <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
                 
                 {/* Left Side: Product List */}
                 <div className="w-full lg:w-2/3 bg-white p-6 rounded shadow flex flex-col h-[85vh]">
@@ -298,6 +301,7 @@ function POS() {
                     </div>
                 </div>
                 
+                </div>
             </div>
         </div>
     );

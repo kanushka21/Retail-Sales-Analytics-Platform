@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
 import saleService from '../services/saleService';
 
 function SalesHistory() {
@@ -25,8 +26,10 @@ function SalesHistory() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-slate-50">
+            <Navbar />
+            <div className="p-8">
+                <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-slate-800">Sales History</h1>
                 </div>
@@ -78,6 +81,7 @@ function SalesHistory() {
                             </tbody>
                         </table>
                     )}
+                </div>
                 </div>
             </div>
         </div>

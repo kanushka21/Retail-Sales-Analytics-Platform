@@ -1,28 +1,28 @@
 import api from './api';
 
 const analyticsService = {
-    getDashboardSummary: async (period = 'all') => {
-        const response = await api.get(`/analytics/summary/?period=${period}`);
+    getDashboardSummary: async (params) => {
+        const response = await api.get(`/analytics/summary/`, { params });
         return response.data;
     },
     
-    getSalesTrend: async (period = 'monthly') => {
-        const response = await api.get(`/analytics/sales-trend/?period=${period}`);
+    getSalesTrend: async (params) => {
+        const response = await api.get(`/analytics/sales-trend/`, { params });
         return response.data;
     },
     
-    getCategorySales: async () => {
-        const response = await api.get('/analytics/category-sales/');
+    getCategorySales: async (params) => {
+        const response = await api.get('/analytics/category-sales/', { params });
         return response.data;
     },
     
-    getTopProducts: async () => {
-        const response = await api.get('/analytics/top-products/');
+    getTopProducts: async (params) => {
+        const response = await api.get('/analytics/top-products/', { params });
         return response.data;
     },
 
-    getPaymentAnalytics: async () => {
-        const response = await api.get('/analytics/payment-methods/');
+    getPaymentAnalytics: async (params) => {
+        const response = await api.get('/analytics/payment-methods/', { params });
         return response.data;
     },
 
